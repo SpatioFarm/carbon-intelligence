@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Carbon Stock Intelligence — Ludhiana</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════
+   CARBON INTELLIGENCE — Complete CSS v6
+═══════════════════════════════════════════════ */
+:root{
+  --b0:#020509;--b1:#050c14;--b2:#08111e;--b3:#0c1828;
+  --br:rgba(0,170,220,.12);--br2:rgba(0,170,220,.28);
+  --cyan:#00d4ff;--green:#00ff88;--blue:#0ea5e9;
+  --purple:#a78bfa;--yellow:#fbbf24;--orange:#f97316;
+  --t1:#e8f4f8;--t2:#8ab4c8;--t3:#4a7a94;--t4:#1e4a62;
+  --fh:'Syne',sans-serif;--fb:'Space Grotesk',sans-serif;--fm:'JetBrains Mono',monospace;
+  --nav:60px;--r:12px;--rs:8px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--b0);color:var(--t1);font-family:var(--fb);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--b1)}::-webkit-scrollbar-thumb{background:#16273e;border-radius:2px}::-webkit-scrollbar-thumb:hover{background:var(--cyan)}
+
+/* NAV */
+.navbar{position:fixed;top:0;left:0;right:0;z-index:2000;height:var(--nav);background:rgba(2,5,9,.96);backdrop-filter:blur(24px);border-bottom:1px solid var(--br);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+.navbar.scrolled{border-bottom-color:var(--br2);box-shadow:0 4px 24px rgba(0,0,0,.6)}
+.nav-brand{display:flex;align-items:center;gap:11px;cursor:pointer;text-decoration:none}
+.brand-ico{width:32px;height:32px;flex-shrink:0;animation:spin 24s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.brand-name{font-family:var(--fh);font-size:.88rem;font-weight:700;color:var(--cyan);letter-spacing:.5px}
+.brand-sub{font-family:var(--fm);font-size:.54rem;color:var(--t4);letter-spacing:2.5px;margin-top:1px}
+.nav-links{display:flex;gap:2px}
+.nav-link{display:flex;align-items:center;gap:6px;font-family:var(--fb);font-size:.82rem;font-weight:500;color:var(--t3);padding:6px 13px;border-radius:var(--rs);cursor:pointer;transition:all .2s;border:none;background:none}
+.nl-dot{width:4px;height:4px;border-radius:50%;background:var(--t4);transition:all .2s;flex-shrink:0}
+.nav-link:hover{color:var(--t2);background:rgba(255,255,255,.04)}.nav-link:hover .nl-dot{background:var(--cyan)}
+.nav-link.active{color:var(--cyan);background:rgba(0,212,255,.08)}.nav-link.active .nl-dot{background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+.nav-live{display:flex;align-items:center;gap:8px;padding:6px 13px;background:rgba(0,255,136,.05);border:1px solid rgba(0,255,136,.15);border-radius:var(--rs)}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pdot 2s ease-in-out infinite}
+@keyframes pdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+.live-lbl{font-family:var(--fm);font-size:.6rem;color:var(--t4);letter-spacing:2px}
+.live-val{font-family:var(--fm);font-size:.82rem;font-weight:600;color:var(--green)}
+
+/* PAGES */
+.page{display:none;padding-top:var(--nav)}.page.active{display:block}
+/* MAP PAGE special — fills viewport height exactly */
+#page-map{display:none;padding-top:0;position:relative}
+#page-map.active{display:block}
+
+/* SECTION */
+.section{padding:44px 28px 60px;max-width:1440px;margin:0 auto}
+
+/* HERO */
+.hero{text-align:center;padding:60px 0 48px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--fm);font-size:.65rem;color:var(--t3);letter-spacing:2px;border:1px solid var(--br);border-radius:20px;padding:5px 14px;background:rgba(255,255,255,.02);margin-bottom:20px}
+.hero-h1{font-family:var(--fh);font-size:clamp(2.4rem,6vw,5rem);font-weight:800;line-height:1.05;color:var(--t1);margin-bottom:18px;letter-spacing:-.4px}
+.hero-h1 em{font-style:normal;background:linear-gradient(135deg,var(--cyan),var(--green) 55%,var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-p{font-family:var(--fb);font-size:1rem;color:var(--t2);max-width:580px;margin:0 auto 24px;line-height:1.9}
+.chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-bottom:30px}
+.chip{font-family:var(--fm);font-size:.65rem;color:var(--t3);letter-spacing:1px;border:1px solid var(--br);border-radius:20px;padding:4px 12px;background:rgba(255,255,255,.02);transition:all .2s}
+.chip:hover{color:var(--cyan);border-color:rgba(0,212,255,.3)}
+.hero-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+/* BUTTONS */
+.btn{font-family:var(--fb);font-size:.85rem;font-weight:600;padding:11px 24px;border-radius:var(--rs);cursor:pointer;border:none;transition:all .22s;letter-spacing:.3px}
+.btn-primary{background:linear-gradient(135deg,#0a4a78,#0e6699);color:var(--cyan);border:1px solid rgba(0,212,255,.35)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,212,255,.22)}
+.btn-ghost{background:rgba(0,212,255,.08);color:var(--cyan);border:1px solid rgba(0,212,255,.2)}
+.btn-ghost:hover{background:rgba(0,212,255,.15);transform:translateY(-2px)}
+.btn-outline{background:transparent;color:var(--t2);border:1px solid var(--br)}
+.btn-outline:hover{border-color:var(--br2);color:var(--t1)}
+
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:40px}
+@media(max-width:1100px){.kpi-row{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--b2);border:1px solid var(--br);border-radius:var(--r);padding:18px 16px 14px;position:relative;overflow:hidden;transition:border-color .25s,transform .25s,box-shadow .25s}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--cyan),var(--green));opacity:0;transition:opacity .3s}
+.kpi:hover::before{opacity:1}.kpi:hover{border-color:rgba(0,212,255,.3);transform:translateY(-4px);box-shadow:0 14px 36px rgba(0,0,0,.4)}
+.kpi-num{font-family:var(--fm);font-size:1.7rem;font-weight:600;color:var(--t1);line-height:1;margin-bottom:7px;font-variant-numeric:tabular-nums}
+.kpi-name{font-family:var(--fb);font-size:.77rem;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.8px}
+.kpi-unit{font-family:var(--fm);font-size:.64rem;color:var(--t4);margin-top:2px}
+.kpi-track{height:2px;background:rgba(255,255,255,.06);border-radius:1px;margin-top:12px;overflow:hidden}
+.kpi-prog{height:100%;width:0;border-radius:1px;transition:width 1.4s cubic-bezier(.4,0,.2,1) .6s}
+
+/* PANELS */
+.two-col{display:flex;gap:14px;flex-wrap:wrap}.two-col>.panel{flex:1;min-width:240px}
+.panel{background:var(--b2);border:1px solid var(--br);border-radius:var(--r);padding:18px;transition:border-color .2s}.panel:hover{border-color:var(--br2)}
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:6px}
+.pt{font-family:var(--fb);font-size:.9rem;font-weight:600;color:var(--cyan)}
+.ptag{font-family:var(--fm);font-size:.62rem;color:var(--t4);letter-spacing:1px;border:1px solid var(--br);border-radius:20px;padding:2px 9px}
+
+/* INFO GRID */
+.info-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:22px}
+@media(max-width:1000px){.info-grid{grid-template-columns:repeat(2,1fr)}}
+.ib{background:var(--b2);border:1px solid var(--br);border-radius:var(--r);padding:16px;transition:border-color .2s}.ib:hover{border-color:var(--br2)}
+.ib-ico{font-size:20px;margin-bottom:8px}
+.ib-t{font-family:var(--fb);font-size:.78rem;font-weight:700;color:var(--cyan);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.ib-l>div{font-family:var(--fm);font-size:.73rem;color:var(--t3);padding:3px 0;border-bottom:1px solid rgba(255,255,255,.03)}.ib-l>div:last-child{border-bottom:none}
+
+/* PAGE HEADER */
+.ph2{text-align:center;margin-bottom:32px}
+.pey{font-family:var(--fm);font-size:.62rem;color:var(--t4);letter-spacing:3px;margin-bottom:10px}
+.ph2 h1{font-family:var(--fh);font-size:2.2rem;font-weight:800;background:linear-gradient(135deg,var(--t1) 30%,var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.ph2 p{font-family:var(--fm);font-size:.7rem;color:var(--t4);letter-spacing:.5px}
+
+/* ══════════ MAP ══════════ */
+#map-wrap{
+  position:sticky;
+  top:var(--nav);
+  /* Height = full viewport minus navbar */
+  height:calc(100vh - var(--nav));
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+#map-topbar{background:rgba(2,5,9,.97);border-bottom:1px solid var(--br);padding:14px 24px 10px;flex-shrink:0}
+.map-ey{font-family:var(--fm);font-size:.58rem;color:var(--t4);letter-spacing:3px;margin-bottom:4px}
+.map-ti{font-family:var(--fh);font-size:1.5rem;font-weight:800;background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.map-de{font-family:var(--fm);font-size:.68rem;color:var(--t4);margin-top:2px}
+.map-kpis{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.mk{padding:6px 12px;background:var(--b2);border:1px solid var(--br);border-radius:var(--rs);text-align:center;min-width:80px}
+.mk-v{font-family:var(--fm);font-size:.84rem;font-weight:600;color:var(--cyan)}
+.mk-l{font-family:var(--fm);font-size:.56rem;color:var(--t4);letter-spacing:1.5px;margin-top:1px}
+
+#map-toolbar{background:rgba(2,5,9,.94);border-bottom:1px solid var(--br);padding:8px 24px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex-shrink:0}
+.tgrp{display:flex;gap:3px;background:var(--b1);padding:3px;border-radius:var(--rs);border:1px solid var(--br)}
+.tg{font-family:var(--fb);font-size:.75rem;font-weight:500;padding:5px 12px;border-radius:6px;cursor:pointer;background:transparent;color:var(--t4);border:1px solid transparent;transition:all .18s;white-space:nowrap}
+.tg:hover{color:var(--t2)}.tg.active{background:rgba(0,212,255,.15);color:var(--cyan);border-color:rgba(0,212,255,.3)}
+.tg.active-dark{background:rgba(200,200,200,.1);color:#ccc;border-color:rgba(200,200,200,.3)}
+.map-legend{display:flex;align-items:center;gap:8px;margin-left:auto;padding:5px 12px;background:var(--b1);border:1px solid var(--br);border-radius:var(--rs)}
+.leg-lbl{font-family:var(--fm);font-size:.6rem;color:var(--t4)}
+.leg-bar{width:100px;height:7px;border-radius:4px;background:linear-gradient(90deg,hsl(220,100%,62%),hsl(185,100%,52%),hsl(145,100%,48%),hsl(45,100%,52%),hsl(15,100%,58%))}
+
+#zoom-banner{background:rgba(0,212,255,.06);border-bottom:1px solid rgba(0,212,255,.1);padding:6px 24px;font-family:var(--fm);font-size:.68rem;color:var(--t3);flex-shrink:0;transition:all .3s}
+#zoom-banner.gone{display:none}
+
+/* THE MAP — takes all remaining space in flex column */
+#leaflet-map{flex:1;min-height:0;width:100%}
+
+#map-footer{background:rgba(2,5,9,.94);border-top:1px solid var(--br);padding:8px 24px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex-shrink:0}
+.mfp{font-family:var(--fm);font-size:.66rem;color:var(--t4);padding:4px 10px;background:var(--b1);border:1px solid var(--br);border-radius:var(--rs);transition:border-color .2s}.mfp:hover{border-color:var(--br2)}
+
+/* LEAFLET CUSTOM */
+.leaflet-popup-content-wrapper{background:#0c1828!important;border:1px solid rgba(0,170,220,.28)!important;border-radius:10px!important;color:var(--t1)!important;box-shadow:0 12px 40px rgba(0,0,0,.7)!important;font-family:var(--fb)!important}
+.leaflet-popup-tip{background:#0c1828!important}.leaflet-popup-content{margin:12px 14px!important}.leaflet-popup-close-button{color:var(--t3)!important}
+
+/* NDVI */
+.ndvi-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.ns{padding:7px 14px;border-radius:var(--rs);font-family:var(--fm);font-size:.68rem;letter-spacing:.8px;line-height:1.6}
+.ns.k{background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.22);color:var(--green)}
+.ns.r{background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.22);color:var(--blue)}
+.ns.n{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.22);color:var(--yellow)}
+
+/* TABS */
+.tab-row{display:flex;gap:2px;margin-bottom:20px;border-bottom:1px solid var(--br)}
+.tab{font-family:var(--fb);font-size:.83rem;font-weight:500;color:var(--t3);background:none;border:none;padding:9px 18px;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;margin-bottom:-1px}
+.tab:hover{color:var(--t2)}.tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.tp{display:none}.tp.active{display:block;animation:fi .3s ease}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* MODEL CARDS */
+.mc{background:var(--b2);border:1px solid var(--br);border-radius:var(--r);padding:22px;flex:1;min-width:240px;transition:border-color .2s}.mc:hover{border-color:var(--br2)}
+.mc-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px}
+.mc-ti{font-family:var(--fb);font-size:.93rem;font-weight:700}
+.mc-su{font-family:var(--fm);font-size:.66rem;color:var(--t4);margin-top:2px}
+.mc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.mcs{background:rgba(0,0,0,.3);border:1px solid rgba(0,160,220,.08);border-radius:var(--rs);padding:9px 12px}
+.mcs-l{font-family:var(--fm);font-size:.61rem;color:var(--t4);letter-spacing:1px;text-transform:uppercase}
+.mcs-v{font-family:var(--fm);font-size:.88rem;font-weight:600;color:var(--t1);margin-top:2px}
+.mc-note{font-family:var(--fm);font-size:.7rem;color:var(--t3);padding:8px 11px;background:rgba(0,212,255,.04);border:1px solid rgba(0,212,255,.08);border-radius:var(--rs)}
+
+/* TABLE */
+.dt{width:100%;border-collapse:collapse}
+.dt th{font-family:var(--fm);font-size:.63rem;color:var(--cyan);text-transform:uppercase;letter-spacing:1.2px;padding:11px 13px;text-align:left;background:rgba(0,50,90,.45);border-bottom:1px solid var(--br)}
+.dt td{font-family:var(--fm);font-size:.79rem;color:var(--t2);padding:9px 13px;border-bottom:1px solid rgba(255,255,255,.03);transition:background .15s}
+.dt tr:hover td{background:rgba(0,140,220,.05);color:var(--t1)}
+
+/* EXPLORER */
+.fbar{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;margin-bottom:12px}
+@media(max-width:800px){.fbar{grid-template-columns:1fr 1fr}}
+.fi{background:var(--b2);border:1px solid var(--br);border-radius:var(--rs);padding:9px 13px;color:var(--t1);font-family:var(--fb);font-size:.85rem;outline:none;transition:border-color .2s,box-shadow .2s;width:100%}
+.fi:focus{border-color:rgba(0,212,255,.45);box-shadow:0 0 0 3px rgba(0,212,255,.07)}.fi::placeholder{color:var(--t4)}
+.echips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.ec{padding:7px 14px;background:var(--b2);border:1px solid var(--br);border-radius:var(--rs);text-align:center;transition:border-color .2s;cursor:default}.ec:hover{border-color:var(--br2)}
+.ecv{font-family:var(--fm);font-size:.88rem;font-weight:600;color:var(--cyan)}
+.ecl{font-family:var(--fm);font-size:.58rem;color:var(--t4);letter-spacing:1.2px;margin-top:1px}
+.t-load{text-align:center;padding:44px;font-family:var(--fm);font-size:.78rem;color:var(--t4);letter-spacing:2px}
+.pages{display:flex;gap:5px;justify-content:center;margin-bottom:20px}
+.pgb{width:34px;height:34px;border-radius:var(--rs);font-family:var(--fm);font-size:.79rem;font-weight:600;background:transparent;color:var(--t4);border:1px solid var(--br);cursor:pointer;transition:all .2s}
+.pgb.active{background:rgba(0,212,255,.14);color:var(--cyan);border-color:rgba(0,212,255,.35)}.pgb:hover:not(.active){border-color:var(--br2);color:var(--t2)}
+.ga{color:#00ff88;background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.25);padding:2px 8px;border-radius:10px;font-size:.64rem;font-family:var(--fm)}
+.gb{color:#fbbf24;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.25);padding:2px 8px;border-radius:10px;font-size:.64rem;font-family:var(--fm)}
+.gc{color:#f97316;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25);padding:2px 8px;border-radius:10px;font-size:.64rem;font-family:var(--fm)}
+
+/* LOADER */
+#ldr{position:fixed;inset:0;z-index:9999;background:var(--b0);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .5s ease}
+#ldr.out{opacity:0;pointer-events:none}
+.ldr-ring{width:46px;height:46px;border-radius:50%;border:2px solid var(--b2);border-top-color:var(--cyan);animation:spin 1s linear infinite}
+.ldr-txt{font-family:var(--fm);font-size:.68rem;color:var(--t4);letter-spacing:4px;animation:pdot 1.5s ease-in-out infinite}
+</style>
+</head>
+<body>
+
+<!-- ══ NAVBAR ══ -->
+<nav class="navbar" id="navbar">
+  <div class="nav-brand" onclick="showPage('home')">
+    <div class="brand-ico"><svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" stroke="#00d4ff" stroke-width="1.2" stroke-dasharray="3 2"/><circle cx="16" cy="16" r="8" stroke="#00ff88" stroke-width="1" stroke-dasharray="2 2"/><circle cx="16" cy="16" r="3" fill="#00d4ff"/></svg></div>
+    <div><div class="brand-name">Carbon Intelligence</div><div class="brand-sub">LUDHIANA · PUNJAB · INDIA</div></div>
+  </div>
+  <div class="nav-links">
+    <a class="nav-link active" onclick="showPage('home')"><span class="nl-dot"></span>Home</a>
+    <a class="nav-link" onclick="showPage('map')"><span class="nl-dot"></span>Map</a>
+    <a class="nav-link" onclick="showPage('analytics')"><span class="nl-dot"></span>Analytics</a>
+    <a class="nav-link" onclick="showPage('model')"><span class="nl-dot"></span>Model</a>
+    <a class="nav-link" onclick="showPage('explorer')"><span class="nl-dot"></span>Explorer</a>
+  </div>
+  <div class="nav-live"><div class="live-dot"></div><span class="live-lbl">TOTAL</span><span class="live-val" id="nav-total">54.23 MtC</span></div>
+</nav>
+
+<!-- ══ HOME ══ -->
+<section class="page active" id="page-home"><div class="section">
+  <div class="hero">
+    <div class="eyebrow">🛰 SATELLITE · ML · GRID ESTIMATION</div>
+    <h1 class="hero-h1">Carbon Stock<br><em>Intelligence System</em></h1>
+    <p class="hero-p">Grid-based ML estimation of carbon stock across Ludhiana District, Punjab — using MODIS satellite imagery, SoilGrids 2.0, and Random Forest models at 250 m × 250 m resolution.</p>
+    <div class="chips"><span class="chip">250 m × 250 m Grid</span><span class="chip">66,790 Cells</span><span class="chip">20,000 Sample</span><span class="chip">Random Forest</span><span class="chip">PostGIS + MongoDB</span></div>
+    <div class="hero-btns">
+      <button class="btn btn-primary" onclick="showPage('map')">View Satellite Map →</button>
+      <button class="btn btn-ghost" onclick="showPage('analytics')">Analytics</button>
+      <button class="btn btn-outline" onclick="showPage('explorer')">Explorer</button>
+    </div>
+  </div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-num" id="kpi-total">54.2280</div><div class="kpi-name">Total Carbon</div><div class="kpi-unit">million tC</div><div class="kpi-track"><div class="kpi-prog" style="width:100%;background:linear-gradient(90deg,#00d4ff,#00ff88)"></div></div></div>
+    <div class="kpi"><div class="kpi-num" id="kpi-ag">1.6678</div><div class="kpi-name">Above-ground</div><div class="kpi-unit">million tC · NPP</div><div class="kpi-track"><div class="kpi-prog" id="kp-ag" style="background:#00ff88"></div></div></div>
+    <div class="kpi"><div class="kpi-num" id="kpi-bg">52.5602</div><div class="kpi-name">Below-ground</div><div class="kpi-unit">million tC · SOC</div><div class="kpi-track"><div class="kpi-prog" id="kp-bg" style="background:#0ea5e9"></div></div></div>
+    <div class="kpi"><div class="kpi-num" id="kpi-agr2">0.5426</div><div class="kpi-name">AG Model R²</div><div class="kpi-unit">Random Forest · NPP</div><div class="kpi-track"><div class="kpi-prog" id="kp-agr2" style="background:#a78bfa"></div></div></div>
+    <div class="kpi"><div class="kpi-num" id="kpi-bgr2">0.9665</div><div class="kpi-name">BG Model R²</div><div class="kpi-unit">Random Forest · SOC</div><div class="kpi-track"><div class="kpi-prog" id="kp-bgr2" style="background:#fbbf24"></div></div></div>
+  </div>
+  <div class="two-col" style="margin-top:24px">
+    <div class="panel" style="flex:2"><div class="ph"><span class="pt">Carbon by Pool</span><span class="ptag">million tC</span></div><div style="height:250px"><canvas id="chart-home-bar"></canvas></div></div>
+    <div class="panel"><div class="ph"><span class="pt">Pool Distribution</span><span class="ptag">%</span></div><div style="height:250px"><canvas id="chart-home-pie"></canvas></div></div>
+  </div>
+  <div class="info-grid">
+    <div class="ib"><div class="ib-ico">🗺</div><div class="ib-t">Study Area</div><div class="ib-l"><div>Ludhiana District, Punjab</div><div>4,168 km² coverage</div><div>250 m × 250 m cells</div><div>66,790 total cells</div><div>50,402 agri cells</div></div></div>
+    <div class="ib"><div class="ib-ico">🤖</div><div class="ib-t">ML Pipeline</div><div class="ib-l"><div>Algorithm: Random Forest</div><div>AG model R² = 0.5426</div><div>BG model R² = 0.9665</div><div>22 features + 12 NDVI</div><div>10,081 + 16,000 training</div></div></div>
+    <div class="ib"><div class="ib-ico">🌿</div><div class="ib-t">Formulas</div><div class="ib-l"><div>AGC = NPP × 0.47 / 100</div><div>BGC = SOC × BD × 30 / 10</div><div>AG mean: 6.83 tC/ha</div><div>BG mean: 125.91 tC/ha</div><div>Cell area: 6.25 ha</div></div></div>
+    <div class="ib"><div class="ib-ico">🛰</div><div class="ib-t">Data Sources</div><div class="ib-l"><div>NDVI: Sentinel-2 / GEE</div><div>Soil: ISRIC SoilGrids 2.0</div><div>DEM: SRTM 30 m</div><div>LST: MODIS Terra</div><div>Jun 2024 – May 2025</div></div></div>
+  </div>
+</div></section>
+
+<!-- ══ MAP ══ -->
+<section class="page" id="page-map">
+  <!-- wrap = full height container -->
+  <div id="map-wrap">
+    <div id="map-topbar">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
+        <div>
+          <div class="map-ey">POSTGIS · REAL POLYGON GRID · GOOGLE SATELLITE</div>
+          <div class="map-ti">Carbon Density Map</div>
+          <div class="map-de" id="map-de">Loading 250 m × 250 m polygons from PostGIS…</div>
+        </div>
+        <div class="map-kpis" id="map-kpis" style="display:none">
+          <div class="mk"><div class="mk-v" id="mk-mean">—</div><div class="mk-l">MEAN</div></div>
+          <div class="mk"><div class="mk-v" id="mk-max">—</div><div class="mk-l">MAX</div></div>
+          <div class="mk"><div class="mk-v" id="mk-min">—</div><div class="mk-l">MIN</div></div>
+          <div class="mk"><div class="mk-v" id="mk-cnt">—</div><div class="mk-l">POLYGONS</div></div>
+        </div>
+      </div>
+    </div>
+    <div id="map-toolbar">
+      <!-- Layer toggles -->
+      <div class="tgrp">
+        <button class="tg active" id="btn-dem"  onclick="setLayer('dem')">🏔 Elevation</button>
+        <button class="tg"        id="btn-agri" onclick="setLayer('agri')">🌾 Agri Class</button>
+        <button class="tg"        id="btn-agc"  onclick="setLayer('agc')">🌱 AG Carbon</button>
+        <button class="tg"        id="btn-bgc"  onclick="setLayer('bgc')">🪨 BG Carbon</button>
+      </div>
+      <!-- Basemap toggles -->
+      <div class="tgrp">
+        <button class="tg active" id="ts-sat"  onclick="setTile('sat')">🛰 Satellite</button>
+        <button class="tg"        id="ts-hyb"  onclick="setTile('hyb')">🗺 Hybrid</button>
+        <button class="tg"        id="ts-str"  onclick="setTile('str')">🛣 Street</button>
+        <button class="tg"        id="ts-dark" onclick="setTile('dark')">⬛ Dark</button>
+      </div>
+      <div class="map-legend"><span class="leg-lbl">Low</span><div class="leg-bar"></div><span class="leg-lbl">High</span></div>
+    </div>
+    <div id="zoom-banner">ℹ Zoom in (use + button or scroll) to zoom level 13+ to see individual 250 m grid cells. Default shows Elevation (DEM) which colours ALL 64,000+ cells.</div>
+    <!-- leaflet-map grows to fill remaining flex space -->
+    <div id="leaflet-map"></div>
+    <div id="map-footer">
+      <div class="mfp">PostGIS 3.6 · Geometry</div>
+      <div class="mfp">250 m × 250 m · Grid</div>
+      <div class="mfp">Google Satellite · Hybrid · Street · Dark</div>
+      <div class="mfp">MongoDB · Carbon Values</div>
+      <div class="mfp" style="margin-left:auto;opacity:.5;font-size:.62rem">🇮🇳 All tiles via Google Maps · Correct Indian borders</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ ANALYTICS ══ -->
+<section class="page" id="page-analytics"><div class="section">
+  <div class="ph2"><div class="pey">CARBON ANALYTICS</div><h1>Carbon Stock Analytics</h1><p>District-level distribution · Random Forest · 20,000 sampled cells</p></div>
+  <div class="kpi-row" style="grid-template-columns:repeat(4,1fr)">
+    <div class="kpi"><div class="kpi-num" id="a-total">54.228</div><div class="kpi-name">Total Carbon</div><div class="kpi-unit">million tC</div></div>
+    <div class="kpi"><div class="kpi-num" id="a-ag">1.6678</div><div class="kpi-name">Above-ground</div><div class="kpi-unit">million tC</div></div>
+    <div class="kpi"><div class="kpi-num" id="a-bg">52.5602</div><div class="kpi-name">Below-ground</div><div class="kpi-unit">million tC</div></div>
+    <div class="kpi"><div class="kpi-num" id="a-bgpct">96.92%</div><div class="kpi-name">Soil Share</div><div class="kpi-unit">% of total</div></div>
+  </div>
+  <div class="two-col" style="margin-top:20px">
+    <div class="panel" style="flex:2"><div class="ph"><span class="pt">Carbon by Pool</span><span class="ptag">million tC</span></div><div style="height:270px"><canvas id="chart-pool-bar"></canvas></div></div>
+    <div class="panel"><div class="ph"><span class="pt">Pool Proportions</span><span class="ptag">%</span></div><div style="height:270px"><canvas id="chart-pool-pie"></canvas></div></div>
+  </div>
+  <div class="panel" style="margin-top:16px">
+    <div class="ph"><span class="pt">Monthly NDVI — June 2024 to May 2025</span><span class="ptag">MODIS · 250 m · Median</span></div>
+    <div style="height:290px"><canvas id="chart-ndvi"></canvas></div>
+    <div class="ndvi-row">
+      <div class="ns k">KHARIF PEAK<br><strong>Aug 2024 — 0.754</strong></div>
+      <div class="ns r">RABI PEAK<br><strong>Mar 2025 — 0.663</strong></div>
+      <div class="ns n">ANNUAL MEDIAN<br><strong id="ndvi-med">—</strong></div>
+    </div>
+  </div>
+  <div class="two-col" style="margin-top:16px">
+    <div class="panel"><div class="ph"><span class="pt" style="color:#00ff88">Above-ground Distribution</span><span class="ptag">AGC tC/ha · 2,521</span></div><div style="height:230px"><canvas id="chart-ag-hist"></canvas></div></div>
+    <div class="panel"><div class="ph"><span class="pt" style="color:#0ea5e9">Below-ground Distribution</span><span class="ptag">BGC tC/ha · 4,000</span></div><div style="height:230px"><canvas id="chart-bg-hist"></canvas></div></div>
+  </div>
+</div></section>
+
+<!-- ══ MODEL ══ -->
+<section class="page" id="page-model"><div class="section">
+  <div class="ph2"><div class="pey">ML MODELS</div><h1>Model Performance</h1><p>Random Forest · MODIS satellite · SoilGrids 2.0</p></div>
+  <div class="tab-row">
+    <button class="tab active" onclick="showTab('tm',this)">Accuracy Metrics</button>
+    <button class="tab" onclick="showTab('tf',this)">Feature Importance</button>
+    <button class="tab" onclick="showTab('tc',this)">Comparison Table</button>
+  </div>
+  <div class="tp active" id="tm"><div class="two-col">
+    <div class="mc">
+      <div class="mc-top">
+        <div><div class="mc-ti" style="color:#00ff88">Above-ground Carbon</div><div class="mc-su">Target: NPP (gC/m²/yr)</div></div>
+        <svg width="80" height="80" viewBox="0 0 100 100" style="margin-left:auto;flex-shrink:0">
+          <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(0,255,136,.12)" stroke-width="7"/>
+          <circle cx="50" cy="50" r="40" fill="none" stroke="#00ff88" stroke-width="7" stroke-dasharray="251.2" stroke-dashoffset="251.2" id="ring-ag" stroke-linecap="round" style="transform:rotate(-90deg);transform-origin:50px 50px;transition:stroke-dashoffset 1.8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 6px #00ff88)"/>
+          <text x="50" y="46" text-anchor="middle" fill="#00ff88" font-size="16" font-weight="700" font-family="JetBrains Mono">54.3%</text>
+          <text x="50" y="60" text-anchor="middle" fill="rgba(255,255,255,.25)" font-size="7" font-family="JetBrains Mono">R²</text>
+        </svg>
+      </div>
+      <div class="mc-grid"><div class="mcs"><div class="mcs-l">RMSE</div><div class="mcs-v" id="ag-rmse">448.597</div></div><div class="mcs"><div class="mcs-l">MAE</div><div class="mcs-v" id="ag-mae">314.795</div></div><div class="mcs"><div class="mcs-l">TRAIN</div><div class="mcs-v" id="ag-tr">10,081</div></div><div class="mcs"><div class="mcs-l">TEST</div><div class="mcs-v" id="ag-te">2,521</div></div></div>
+      <div class="mc-note">22 features · 12 monthly NDVI · terrain · climate</div>
+    </div>
+    <div class="mc">
+      <div class="mc-top">
+        <div><div class="mc-ti" style="color:#0ea5e9">Below-ground Carbon</div><div class="mc-su">Target: SOC (g/kg)</div></div>
+        <svg width="80" height="80" viewBox="0 0 100 100" style="margin-left:auto;flex-shrink:0">
+          <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(14,165,233,.12)" stroke-width="7"/>
+          <circle cx="50" cy="50" r="40" fill="none" stroke="#0ea5e9" stroke-width="7" stroke-dasharray="251.2" stroke-dashoffset="251.2" id="ring-bg" stroke-linecap="round" style="transform:rotate(-90deg);transform-origin:50px 50px;transition:stroke-dashoffset 1.8s cubic-bezier(.4,0,.2,1) .3s;filter:drop-shadow(0 0 6px #0ea5e9)"/>
+          <text x="50" y="46" text-anchor="middle" fill="#0ea5e9" font-size="16" font-weight="700" font-family="JetBrains Mono">96.7%</text>
+          <text x="50" y="60" text-anchor="middle" fill="rgba(255,255,255,.25)" font-size="7" font-family="JetBrains Mono">R²</text>
+        </svg>
+      </div>
+      <div class="mc-grid"><div class="mcs"><div class="mcs-l">RMSE</div><div class="mcs-v" id="bg-rmse">1.392</div></div><div class="mcs"><div class="mcs-l">MAE</div><div class="mcs-v" id="bg-mae">1.012</div></div><div class="mcs"><div class="mcs-l">TRAIN</div><div class="mcs-v" id="bg-tr">16,000</div></div><div class="mcs"><div class="mcs-l">TEST</div><div class="mcs-v" id="bg-te">4,000</div></div></div>
+      <div class="mc-note">6 soil features · bulk density · clay · sand · DEM · slope</div>
+    </div>
+  </div></div>
+  <div class="tp" id="tf"><div class="panel"><div class="ph"><span class="pt">Feature Importance — Above-ground</span><span class="ptag"><span style="color:#00ff88">■</span> NDVI &nbsp;<span style="color:#fbbf24">■</span> climate</span></div><div style="height:400px"><canvas id="chart-fi"></canvas></div></div></div>
+  <div class="tp" id="tc"><div class="panel"><div class="ph"><span class="pt">Full Model Comparison</span></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Model</th><th>Target</th><th>R²</th><th>RMSE</th><th>MAE</th><th>Status</th></tr></thead><tbody id="cmp-tbody"></tbody></table></div></div></div>
+</div></section>
+
+<!-- ══ EXPLORER ══ -->
+<section class="page" id="page-explorer"><div class="section">
+  <div class="ph2"><div class="pey">DATA EXPLORER</div><h1>Prediction Explorer</h1><p>Browse MongoDB predictions · Filter · Export CSV</p></div>
+  <div class="fbar">
+    <input class="fi" id="fs" placeholder="Search cell index…" oninput="doFilter()"/>
+    <input class="fi" id="fmin" type="number" placeholder="Min AGC (tC/ha)" oninput="doFilter()"/>
+    <input class="fi" id="fmax" type="number" placeholder="Max AGC (tC/ha)" oninput="doFilter()"/>
+    <button class="btn btn-ghost" onclick="doExport()" style="white-space:nowrap">⬇ Export CSV</button>
+  </div>
+  <div class="echips"><div class="ec"><div class="ecv" id="ec-show">—</div><div class="ecl">SHOWING</div></div><div class="ec"><div class="ecv" id="ec-mag">—</div><div class="ecl">MEAN AGC</div></div><div class="ec"><div class="ecv" id="ec-mbg">—</div><div class="ecl">MEAN BGC</div></div><div class="ec"><div class="ecv" id="ec-tot">—</div><div class="ecl">TOTAL</div></div></div>
+  <div class="panel" style="margin-bottom:14px;overflow-x:auto">
+    <div id="tbl-load" class="t-load">Loading from MongoDB…</div>
+    <table class="dt" id="exp-tbl" style="display:none"><thead><tr><th>Cell #</th><th>AGC tC/ha</th><th>BGC tC/ha</th><th>Total C</th><th>Pred NPP</th><th>Pred SOC</th><th>Grade</th></tr></thead><tbody id="exp-tbody"></tbody></table>
+    <div id="exp-more" style="display:none;text-align:center;padding:8px;font-size:.72rem;color:#3a607a"></div>
+  </div>
+  <div class="pages" id="pages"></div>
+  <div class="two-col">
+    <div class="panel"><div class="ph"><span class="pt">AGC vs BGC Scatter</span><span class="ptag">test cells</span></div><div style="height:270px"><canvas id="chart-scatter"></canvas></div></div>
+    <div class="panel"><div class="ph"><span class="pt" style="color:#00ff88">AGC Distribution</span><span class="ptag">filtered</span></div><div style="height:270px"><canvas id="chart-ehist"></canvas></div></div>
+  </div>
+</div></section>
+
+<div id="ldr"><div class="ldr-ring"></div><div class="ldr-txt">INITIALISING</div></div>
+<script src="/static/main.js?v=6"></script>
+</body>
+</html>
