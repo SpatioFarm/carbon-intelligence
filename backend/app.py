@@ -21,9 +21,10 @@ CORS(app)
 
 # ── DATABASE CONFIG ───────────────────────────────────────────
 # PostgreSQL — Supabase Session Pooler (IPv4 compatible)
+# FIX: Changed port from 5432 → 6543 (required for session pooler)
 SUPABASE_URL = (
     "postgresql://postgres.dexguularfuqzkqmcjnc:CarbonStock@2025"
-    "@aws-1-ap-south-1.pooler.supabase.com:5432/postgres"
+    "@aws-1-ap-south-1.pooler.supabase.com:6543/postgres"
 )
 
 # MongoDB — Atlas cloud
