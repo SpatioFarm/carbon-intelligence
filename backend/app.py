@@ -10,6 +10,7 @@ from flask import Flask, render_template, jsonify, request
 from flask_cors import CORS
 import psycopg2, psycopg2.extras
 from pymongo import MongoClient
+from urllib.parse import quote_plus
 import json, os
 
 app = Flask(
@@ -21,14 +22,15 @@ CORS(app)
 
 # ── DATABASE CONFIG ───────────────────────────────────────────
 # PostgreSQL — Supabase Session Pooler (IPv4 compatible)
-# FIX: Changed port from 5432 → 6543 (required for session pooler)
-SUPABASE_URL = (
-    "postgresql://postgres.dexguularfuqzkqmcjnc:CarbonStock@2025"
-    "@aws-1-ap-south-1.pooler.supabase.com:6543/postgres"
-)
+# FIX: Password contains @ symbol so we URL-encode it using quote_plus
+PG_USER = "postgres.dexguularfuqzkqmcjnc"
+PG_PASS = quote_plus("CarbonStock@2025")   # @ becomes %40
+PG_HOST = "aws-1-ap-south-1.pooler.supabase.com"
+PG_PORT = "6543"
+PG_DB   = "postgres"
+SUPABASE_URL = f"postgresql://{PG_USER}:{PG_PASS}@{PG_HOST}:{PG_PORT}/{PG_DB}"
 
 # MongoDB — Atlas cloud
-from urllib.parse import quote_plus
 MDB_USER = "sathvik_BDA_project"
 MDB_PASS = "upUjc0w06guetqnP"
 MDB_URI  = (
